@@ -35,7 +35,7 @@ pipeline {
 
         stage('Run Tests') {
             steps {
-                sh "cd ${BUILD_DIR} && ctest --output-on-failure"
+                sh "cd ${env.BUILD_DIR} && ctest --output-on-failure"
             }
         }
 
