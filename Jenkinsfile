@@ -24,13 +24,14 @@ pipeline {
             steps { checkout scm }
         }
 
-        stage('Conan & CMake Build') {
+       stage('Conan & CMake Build') {
             steps {
-                sh "conan install . --output-folder=${BUILD_DIR} --build=missing"
-                sh "cmake -S . -B ${BUILD_DIR} -DPROJECT_NAME=${params.PROJECT_NAME}"
-                sh "cmake --build ${BUILD_DIR}"
-            }
-        }
+        // Usar env.BUILD_DIR garante que o Jenkins pegue a variável do environment
+        sh "conan install . --output-folder=${env.BUILD_DIR} --build=missing"
+        sh "cmake -S . -B ${env.BUILD_DIR} -DPROJECT_NAME=${params.PROJECT_NAME}"
+        sh "cmake --build ${env.BUILD_DIR}"
+    }
+}
 
         stage('Run Tests') {
             steps {
