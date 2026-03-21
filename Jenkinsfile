@@ -8,7 +8,7 @@ pipeline {
         string(name: 'PROJECT_NAME', defaultValue: 'cpp-template', description: 'Nome do projeto/executável')
         string(name: 'GITHUB_REPO', defaultValue: '', description: 'URL do repositório GitHub')
         string(name: 'GITHUB_BRANCH', defaultValue: 'main', description: 'Branch a ser usada')
-        string(name: 'DOCKER_REGISTRY', defaultValue: '172.17.0.2:5001', description: 'Endereço do Docker/Nexus Registry')
+        string(name: 'DOCKER_REGISTRY', defaultValue: '127.0.0.1:5001', description: 'Endereço do Docker/Nexus Registry')
         string(name: 'BUILD_TYPE', defaultValue: 'Release', description: 'Tipo de build (Release/Debug)')
     }
 
