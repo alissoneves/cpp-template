@@ -1,6 +1,5 @@
 pipeline {
-    pipeline {
-    agent { label 'cpp-agent' }
+        agent { label 'cpp-agent' }
 
     // =============================
     // Parâmetros configuráveis
@@ -116,5 +115,3 @@ pipeline {
         }
     }
 } 
-
-}
