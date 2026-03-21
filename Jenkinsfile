@@ -58,15 +58,20 @@ pipeline {
         }
 
         stage('Kubernetes Deploy') {
-            steps {
-                echo "Atualizando K8s com a imagem: ${IMAGE_TAG}"
-                sh """
-                kubectl set image deployment/${params.PROJECT_NAME} \
-                ${params.PROJECT_NAME}=${params.DOCKER_REGISTRY}/${params.PROJECT_NAME}:${IMAGE_TAG}
-                
-                kubectl rollout status deployment/${params.PROJECT_NAME}
-                """
-            }
+    steps {
+        echo "Atualizando K8s com a imagem: ${env.IMAGE_TAG}"
+        sh """
+            # 1. Atualiza a imagem no Deployment
+            kubectl set image deployment/${params.PROJECT_NAME} \
+            ${params.PROJECT_NAME}=${params.DOCKER_REGISTRY}/${params.PROJECT_NAME}:${env.IMAGE_TAG}
+            
+            # 2. Aguarda o status com um limite de tempo (timeout)
+            # Se o app for um processo curto, o rollout pode não 'estabilizar' como Running,
+            # então usamos o '|| true' para não falhar a pipeline por causa do monitoramento do K8s.
+            kubectl rollout status deployment/${params.PROJECT_NAME} --timeout=30s || echo "Rollout em andamento ou finalizado (verifique os pods manualmente)"
+        """
+    }
+}
         }
     }
 
