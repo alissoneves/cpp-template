@@ -60,12 +60,17 @@ pipeline {
 
         stage('Kubernetes Deploy') {
             steps {
-                echo "Fazendo deploy do projeto: ${env.REAL_PROJECT_NAME}"
+                echo "Customizando e aplicando o deploy para: ${env.REAL_PROJECT_NAME}"
                 sh """
+                    # 1. Substitui os placeholders no arquivo físico
+                    sed -i 's/{{APP_NAME}}/${env.REAL_PROJECT_NAME}/g' deployment.yaml
+                    sed -i 's/{{IMAGE_TAG}}/${env.IMAGE_TAG}/g' deployment.yaml
+                    
+                    # 2. Agora aplica o arquivo já preenchido
                     kubectl apply -f deployment.yaml
-                    kubectl set image deployment/${env.REAL_PROJECT_NAME} \
-                    ${env.REAL_PROJECT_NAME}=${params.DOCKER_REGISTRY}/${env.REAL_PROJECT_NAME}:${env.IMAGE_TAG}
-                    kubectl rollout status deployment/${env.REAL_PROJECT_NAME} --timeout=30s || echo "Rollout finalizado"
+                    
+                    # 3. Verifica o status do rollout
+                    kubectl rollout status deployment/${env.REAL_PROJECT_NAME} --timeout=60s || echo "Rollout em andamento..."
                 """
             }
         }
