@@ -11,4 +11,4 @@ COPY build/Release/cpp-template /app/cpp-template
 RUN chmod +x /app/cpp-template
 
 # Comando direto sem variáveis complexas para testar
-CMD ["/app/cpp-template"]
+CMD ["/bin/bash", "-c", "/app/executable && sleep infinity"]
