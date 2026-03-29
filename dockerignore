@@ -1,12 +1,26 @@
+# Ignora tudo dentro de build
 build/*
-!build/Release/
-!build/Release/*
+
+# Reinclui SOMENTE o Release
+!build/Release
+!build/Release/**
+
+# Arquivos do CMake (não necessários na imagem)
 CMakeCache.txt
 CMakeFiles/
 CMakeFiles
+
+# Objetos e libs intermediárias
 *.o
 *.a
 *.so
 *.out
+
+# Git
 .git
 .gitignore
+
+# Outros (boa prática)
+Dockerfile
+Jenkinsfile
+README.md

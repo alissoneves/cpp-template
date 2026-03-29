@@ -40,20 +40,22 @@ pipeline {
             }
         }
 
-        stage('Detect Binary Name') {
+       stage('Detect Binary Name') {
     steps {
         script {
             def binary = sh(
-                script: "find ${env.BUILD_DIR} -maxdepth 1 -type f -executable ! -name '*_tests' -printf '%f\n' | head -n 1",
+                script: "find ${env.BUILD_DIR} -maxdepth 1 -type f ! -name '*_tests' -printf '%f\n' | head -n 1",
                 returnStdout: true
             ).trim()
 
             if (!binary) {
+                sh "ls -la ${env.BUILD_DIR}" // debug
                 error "❌ Nenhum binário encontrado em ${env.BUILD_DIR}"
             }
 
             env.REAL_PROJECT_NAME = binary
         }
+
         echo "Binário detectado: ${env.REAL_PROJECT_NAME}"
     }
 }
