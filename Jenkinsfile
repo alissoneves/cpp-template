@@ -8,7 +8,7 @@ pipeline {
 
     environment {
         PATH = "/home/alissoneves/.local/bin:/usr/local/bin:/usr/bin:/bin:${env.PATH}"
-        REAL_PROJECT_NAME = "${env.JOB_NAME.split('/')[0]}"
+        REAL_PROJECT_NAME = ""
         BUILD_DIR = "build/Release"
         NEXUS_CRED = credentials('nexus-credentials')
         IMAGE_TAG = "${env.BUILD_NUMBER}-${env.GIT_COMMIT?.take(7)}"
@@ -29,7 +29,6 @@ pipeline {
                     -DCMAKE_TOOLCHAIN_FILE=${env.BUILD_DIR}/${env.BUILD_DIR}/generators/conan_toolchain.cmake \
                     -DCMAKE_PREFIX_PATH=${env.BUILD_DIR}/${env.BUILD_DIR}/generators \
                     -DCMAKE_BUILD_TYPE=${params.BUILD_TYPE} \
-                    -DPROJECT_NAME=${env.REAL_PROJECT_NAME}
                 """ 
                 sh "cmake --build ${env.BUILD_DIR}"
             }
@@ -38,6 +37,18 @@ pipeline {
         stage('Run Tests') {
             steps {
                 sh "cd ${env.BUILD_DIR} && ctest --output-on-failure"
+            }
+        }
+
+        stage('Detect Binary Name') {
+            steps {
+                script {
+            env.REAL_PROJECT_NAME = sh(
+                script: "ls ${env.BUILD_DIR} | grep -v _tests | head -n 1",
+                returnStdout: true
+            ).trim()
+                }
+        echo "Binário detectado: ${env.REAL_PROJECT_NAME}"
             }
         }
 
