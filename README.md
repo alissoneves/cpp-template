@@ -37,7 +37,7 @@ No `Jenkinsfile`, ajuste as variáveis no bloco `environment` se o seu ambiente 
 * `REGISTRY`: Endereço do seu Docker Registry.
 * `PATH`: Caminho para os binários do Conan/CMake no seu Agent.
 
-## 🏗️ Estrutura do Projeto
+## Estrutura do Projeto
 
 ```text
 .
