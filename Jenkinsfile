@@ -2,13 +2,17 @@ pipeline {
     agent { label 'cpp-agent' }
 
     environment {
-        // Captura o nome da pasta atual (ex: cpp-exer1)
-        PROJECT_NAME = "${sh(script: 'basename $(pwd)', returnStdout: true).trim()}"
-        // Define a Tag da imagem com o número do build e os 7 primeiros caracteres do commit
-        IMAGE_TAG    = "${env.BUILD_NUMBER}-${env.GIT_COMMIT.take(7)}"
-        // Endereço do seu Registry Nexus
-        REGISTRY     = "host.docker.internal:5001"
-    }
+    // 1. Garante que o Jenkins ache o Conan e o CMake
+    PATH = "/home/alissoneves/.local/bin:/usr/local/bin:/usr/bin:/bin:${env.PATH}"
+    
+    // 2. Nome dinâmico (com o comando sh para pegar o nome da pasta)
+    PROJECT_NAME = "${sh(script: 'basename $(pwd)', returnStdout: true).trim()}"
+    
+    // 3. Outras variáveis
+    BUILD_DIR = "build/Release"
+    IMAGE_TAG = "${env.BUILD_NUMBER}-${env.GIT_COMMIT?.take(7) ?: 'no-git'}"
+    REGISTRY = "host.docker.internal:5001"
+}
 
     stages {
         stage('Conan & CMake Build') {
