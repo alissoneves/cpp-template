@@ -50,6 +50,7 @@ No `Jenkinsfile`, ajuste as variáveis no bloco `environment` se o seu ambiente 
 ├── Jenkinsfile         # Definição do Pipeline CI/CD
 └── deployment.yaml     # Manifesto Kubernetes (Template)
 
+```
 
 📈 Fluxo de Trabalho
 O pipeline executa automaticamente as seguintes etapas a cada git push:
@@ -65,8 +66,7 @@ Unit Tests: Execução do CTest.
 Docker Build: Criação da imagem com o nome dinâmico do projeto.
 
 
-
-O que você precisa customizar?
+📈 O que você precisa customizar?
 Para que este template funcione no seu ambiente específico, você deve ajustar os seguintes pontos:
 
 No Jenkinsfile (Variáveis de Ambiente)
