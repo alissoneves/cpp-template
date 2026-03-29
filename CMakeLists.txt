@@ -1,19 +1,20 @@
-cmake_minimum_required(VERSION 3.10)
-project(cpp-template LANGUAGES CXX)
+cmake_minimum_required(VERSION 3.15)
 
-# Nome do app configurável
-if(NOT DEFINED APP_NAME)
-    set(APP_NAME cpp-app)
-endif()
+# 1. Pega o nome da pasta onde o projeto está e define como nome do projeto
+get_filename_component(DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
+project(${DIR_NAME} LANGUAGES CXX)
+
+# 2. Define o nome do executável baseado no nome do projeto/pasta
+set(APP_NAME ${PROJECT_NAME})
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# Dependências
+# Dependências (Conan cuidará de encontrar estas)
 find_package(fmt REQUIRED)
 find_package(spdlog REQUIRED)
 
-# Executável principal
+# Executável principal usando o nome dinâmico
 add_executable(${APP_NAME} src/main.cpp)
 
 target_link_libraries(${APP_NAME}
@@ -24,7 +25,6 @@ target_link_libraries(${APP_NAME}
 
 # --- TESTES ---
 find_package(GTest REQUIRED)
-
 enable_testing()
 
 add_executable(${APP_NAME}_tests tests/test_main.cpp)

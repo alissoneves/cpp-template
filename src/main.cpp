@@ -2,9 +2,7 @@
 
 int main()
 {
-    std::cout << "Service 1 started\n";
-    std::cout << "Service 2 started\n";
-    std::cout << "Service 3 started\n";
-    std::cout << "Service 4 started\n";
+    std::cout << "Let's get it started! :)\n";
+    std::cout << "Let's get it started 2! :)\n";
     return 0;
 }

@@ -1,76 +1,74 @@
+Aqui está a versão final e ajustada do seu Jenkinsfile.
+
+A principal mudança é o bloco environment, onde usamos um comando sh para capturar o basename do diretório atual. Isso garante que, se você clonar o repositório numa pasta chamada cpp-exer1 ou meu-novo-projeto, o Jenkins usará esse nome para tudo.
+
+📄 Jenkinsfile (Dinâmico)
+Groovy
 pipeline {
     agent { label 'cpp-agent' }
 
-    parameters {
-        string(name: 'DOCKER_REGISTRY', defaultValue: 'host.docker.internal:5001', description: 'Registry do Nexus')
-        string(name: 'BUILD_TYPE', defaultValue: 'Release', description: 'Release/Debug')
+    environment {
+        // Captura o nome da pasta atual (ex: cpp-exer1)
+        PROJECT_NAME = "${sh(script: 'basename $(pwd)', returnStdout: true).trim()}"
+        // Define a Tag da imagem com o número do build e os 7 primeiros caracteres do commit
+        IMAGE_TAG    = "${env.BUILD_NUMBER}-${env.GIT_COMMIT.take(7)}"
+        // Endereço do seu Registry Nexus
+        REGISTRY     = "host.docker.internal:5001"
     }
 
-    environment {
-    PATH = "/home/alissoneves/.local/bin:/usr/local/bin:/usr/bin:/bin:${env.PATH}"
-    APP_NAME = "cpp-app"
-    REAL_PROJECT_NAME = "${APP_NAME}"
-    BUILD_DIR = "build/Release"
-    NEXUS_CRED = credentials('nexus-credentials')
-    IMAGE_TAG = "${env.BUILD_NUMBER}-${env.GIT_COMMIT?.take(7)}"
-}
-
     stages {
-        stage('Checkout') {
-            steps {
-                checkout scm
-            }
-        }
-
         stage('Conan & CMake Build') {
             steps {
-                sh "conan install . --output-folder=${env.BUILD_DIR} --build=missing"
+                echo "🔨 Iniciando Build para o projeto: ${PROJECT_NAME}"
+                // O Conan instala as dependências
+                sh "conan install . --output-folder=build/Release --build=missing"
+                
+                // O CMake configura o projeto usando o Toolchain do Conan
                 sh """
-                    cmake -S . -B ${env.BUILD_DIR} \
-                    -DCMAKE_TOOLCHAIN_FILE=${env.BUILD_DIR}/${env.BUILD_DIR}/generators/conan_toolchain.cmake \
-                    -DCMAKE_PREFIX_PATH=${env.BUILD_DIR}/${env.BUILD_DIR}/generators \
-                    -DCMAKE_BUILD_TYPE=${params.BUILD_TYPE} \
-                """ 
-                sh "cmake --build ${env.BUILD_DIR}"
+                    cmake -S . -B build/Release \
+                    -DCMAKE_TOOLCHAIN_FILE=build/Release/build/Release/generators/conan_toolchain.cmake \
+                    -DCMAKE_BUILD_TYPE=Release
+                """
+                
+                // Compila o binário (que terá o nome de ${PROJECT_NAME} graças ao ajuste no CMakeLists.txt)
+                sh "cmake --build build/Release"
             }
         }
 
         stage('Run Tests') {
             steps {
-                sh "cd ${env.BUILD_DIR} && ctest --output-on-failure"
-            }
-        }
-
-        stage('Docker Login') {
-            steps {
-                echo 'Logando no Nexus...'
-                sh "echo ${NEXUS_CRED_PSW} | docker login ${params.DOCKER_REGISTRY} -u ${NEXUS_CRED_USR} --password-stdin"
+                echo "🧪 Executando Testes Unitários..."
+                sh "cd build/Release && ctest --output-on-failure"
             }
         }
 
         stage('Docker Build & Push') {
             steps {
                 script {
-                    def fullImageName = "${params.DOCKER_REGISTRY}/${env.REAL_PROJECT_NAME}:${env.IMAGE_TAG}"
-                    sh "docker build --build-arg PROJECT_NAME=${env.REAL_PROJECT_NAME} -t ${fullImageName} ."
-                    sh "docker push ${fullImageName}"
+                    echo "📦 Criando imagem Docker: ${REGISTRY}/${PROJECT_NAME}:${IMAGE_TAG}"
+                    
+                    // Passamos o PROJECT_NAME como build-arg para o Dockerfile saber qual arquivo copiar
+                    sh """
+                        docker build \
+                        --build-arg PROJECT_NAME=${PROJECT_NAME} \
+                        -t ${REGISTRY}/${PROJECT_NAME}:${IMAGE_TAG} .
+                    """
+                    
+                    sh "docker push ${REGISTRY}/${PROJECT_NAME}:${IMAGE_TAG}"
                 }
             }
         }
 
         stage('Kubernetes Deploy') {
             steps {
-                echo "Customizando e aplicando o deploy para: ${env.REAL_PROJECT_NAME}"
+                echo "🚀 Fazendo Deploy no Kubernetes: ${PROJECT_NAME}"
+                
+                // O sed substitui os placeholders no seu deployment.yaml dinamicamente
                 sh """
-                    # 1. Substitui os placeholders no arquivo físico
-                    sed -i 's/{{APP_NAME}}/${env.REAL_PROJECT_NAME}/g' deployment.yaml
-                    sed -i 's/{{IMAGE_TAG}}/${env.IMAGE_TAG}/g' deployment.yaml
-                    
-                    # 2. Agora aplica o arquivo já preenchido
+                    sed -i 's/{{APP_NAME}}/${PROJECT_NAME}/g' deployment.yaml
+                    sed -i 's/{{IMAGE_TAG}}/${IMAGE_TAG}/g' deployment.yaml
                     kubectl apply -f deployment.yaml
-                    
-                    # 3. Verifica o status do rollout
-                    kubectl rollout status deployment/${env.REAL_PROJECT_NAME} --timeout=60s || echo "Rollout em andamento..."
+                    kubectl rollout status deployment/${PROJECT_NAME} --timeout=60s
                 """
             }
         }
@@ -78,10 +76,10 @@ pipeline {
 
     post {
         success {
-            echo "Pipeline concluída com sucesso! 🚀 Projeto: ${env.REAL_PROJECT_NAME}"
+            echo "✅ Pipeline concluída com sucesso! Projeto ${PROJECT_NAME} disponível."
         }
         failure {
-            echo "Pipeline falhou no projeto ${env.REAL_PROJECT_NAME}. Verifique os logs. ❌"
+            echo "❌ Ocorreu um erro na pipeline do projeto ${PROJECT_NAME}."
         }
     }
 }

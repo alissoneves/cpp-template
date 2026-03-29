@@ -7,15 +7,14 @@ RUN apt-get update && apt-get install -y \
 
 WORKDIR /app
 
-# Recebe o nome do binário vindo do Jenkins
+# O Jenkins vai passar o nome da pasta aqui
 ARG PROJECT_NAME
+# O caminho onde o CMake colocou o binário
 ARG BUILD_DIR=build/Release
 
-# Copia o binário correto dinamicamente
+# Copia o binário usando o nome dinâmico definido no CMake
 COPY ${BUILD_DIR}/${PROJECT_NAME} /app/executable
 
-# Permissão de execução
 RUN chmod +x /app/executable
 
-# Executa
 CMD ["/bin/bash", "-c", "/app/executable && sleep infinity"]
