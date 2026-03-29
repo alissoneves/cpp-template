@@ -1,4 +1,5 @@
 build/*
+!build/Release/
 !build/Release/*
 CMakeCache.txt
 CMakeFiles/
