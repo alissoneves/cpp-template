@@ -1,5 +1,4 @@
 ## Create new project
-## Testando meu CODEOWNERS
 
 
 Este repositório é um **template de referência** para automação completa de projetos C++. Ele foi projetado para ser 100% dinâmico: ao clonar este template para um novo repositório, o pipeline detecta automaticamente o nome da pasta e configura o Build, a Imagem Docker e o Deploy no Kubernetes sem necessidade de alterações manuais nos scripts.
